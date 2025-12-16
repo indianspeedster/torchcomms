@@ -3,6 +3,8 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 #include <rccl.h> // @manual=//comms/rcclx:rcclx-dev
 
 namespace torch {
