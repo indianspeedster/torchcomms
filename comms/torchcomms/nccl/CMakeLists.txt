@@ -2,7 +2,15 @@
 # Extension: torchcomms._comms_nccl
 file(GLOB TORCHCOMMS_NCCL_SOURCES "comms/torchcomms/nccl/*.cpp")
 file(GLOB TORCHCOMMS_CUDA_API_SOURCE "comms/torchcomms/device/CudaApi.cpp")
-find_package(CUDA)
+
+# Support both CUDA and ROCm/HIP
+if(DEFINED ENV{ROCM_PATH} OR EXISTS "/opt/rocm")
+    set(USE_ROCM ON)
+    find_package(hip REQUIRED)
+else()
+    set(USE_ROCM OFF)
+    find_package(CUDA)
+endif()
 
 if(USE_SYSTEM_LIBS)
     # Use system installed NCCL
@@ -49,7 +57,9 @@ else()
     )
 endif()
 
-if(CUDA_FOUND)
+if(USE_ROCM)
+    target_link_libraries(torchcomms_comms_nccl PRIVATE hip::host)
+elseif(CUDA_FOUND)
     target_link_libraries(torchcomms_comms_nccl PRIVATE CUDA::cudart)
 endif()
 

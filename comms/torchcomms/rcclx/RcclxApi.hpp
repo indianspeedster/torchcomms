@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <stdexcept>
 #include <rccl.h> // @manual=//comms/rcclx:rcclx-dev
 
 namespace torch {

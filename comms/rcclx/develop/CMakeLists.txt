@@ -785,9 +785,9 @@ set(CTRAN_FILES
   comms/ctran/algos/AllToAll/AllToAllvDynamicSplit.cc
   comms/ctran/algos/AllToAll/AllToallvDynamicSplitNonContig.cc
   comms/ctran/algos/AllToAll/AllToAllvImpl.h
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.cc
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.h
-  comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllvImpl.h
+# comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.cc
+# comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllv.h
+# comms/ctran/algos/AllToAll/fb/compressed/CompressedAllToAllvImpl.h
   comms/ctran/algos/AllToAll/Types.h
 
   comms/ctran/algos/AllToAllvDedup/AlgoImpl.cc
@@ -887,9 +887,9 @@ set(CTRAN_FILES
   comms/ctran/hints/HintUtils.h
   #comms/ctran/ibverbx/benchmarks/IbverbxIbEventBench.cc
   #comms/ctran/ibverbx/benchmarks/IbverbxVirtualQpBench.cc
-  comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
-  comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
-  comms/ctran/ibverbx/fb/ibgda/Utils.h
+# comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
+# comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
+# comms/ctran/ibverbx/fb/ibgda/Utils.h
   comms/ctran/ibverbx/Ibvcore.h
   comms/ctran/ibverbx/Ibverbx.cc
   comms/ctran/ibverbx/Ibverbx.h
@@ -946,9 +946,9 @@ set(CTRAN_FILES
   comms/ctran/utils/DevUtils.cuh
 
   comms/ctran/ibverbx/DqplbSeqTracker.h
-  comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
-  comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
-  comms/ctran/ibverbx/fb/ibgda/Utils.h
+# comms/ctran/ibverbx/fb/ibgda/DeviceQueuePair.h
+# comms/ctran/ibverbx/fb/ibgda/SegmentBuilder.h
+# comms/ctran/ibverbx/fb/ibgda/Utils.h
   comms/ctran/ibverbx/IbvCommon.h
   comms/ctran/ibverbx/Ibvcore.h
   comms/ctran/ibverbx/IbvCq.h
@@ -961,6 +961,8 @@ set(CTRAN_FILES
   comms/ctran/ibverbx/IbvVirtualCq.h
   comms/ctran/ibverbx/IbvVirtualQp.h
   comms/ctran/ibverbx/IbvVirtualWr.h
+  comms/ctran/ibverbx/device/structs.h
+  comms/ctran/ibverbx/Mlx5dv.h
 
   comms/ctran/bootstrap/AbortableSocket.h
   comms/ctran/bootstrap/AsyncSocket.h
@@ -978,14 +980,14 @@ set(CTRAN_FILES
   comms/ctran/mapper/CtranMapperRegMem.h
   comms/ctran/mapper/CtranMapperRequest.cc
   comms/ctran/mapper/CtranMapperTypes.h
-  comms/ctran/mapper/fb/IcompressionManager.h
+# comms/ctran/mapper/fb/IcompressionManager.h
   comms/ctran/memory/memCacheAllocator.cc
   comms/ctran/memory/memCacheAllocator.h
   comms/ctran/memory/SlabAllocator.cc
   comms/ctran/memory/SlabAllocator.h
   comms/ctran/memory/Utils.cc
   comms/ctran/memory/Utils.h
-  comms/tcp_devmem/transport.h
+# comms/tcp_devmem/transport.h
   comms/ctran/profiler/AlgoProfilerModule.cc
   comms/ctran/profiler/AlgoProfilerModule.h
   comms/ctran/profiler/CtranProfiler.cc
@@ -1629,6 +1631,14 @@ target_compile_definitions(rccl PRIVATE CTRAN_DISABLE_TCPDM) # TCPDM has strict 
 target_compile_definitions(rccl PRIVATE NVTX_DISABLE) # NVTX is for annotating code for profilers like NSight systems. It's disabled by default for the NCCLX Conda package.
 
 ## Set RCCL compile options
+# Workaround for GCC 13 + HIP/ROCm compatibility issue with std::_Destroy in libstdc++
+# Use GCC 12 toolchain which is compatible with HIP's built-in includes
+if(EXISTS "/usr/lib/gcc/x86_64-linux-gnu/12")
+  target_compile_options(rccl PRIVATE --gcc-toolchain=/usr)
+  target_compile_options(rccl PRIVATE --gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/12)
+  message(STATUS "Using GCC 12 toolchain for HIP compatibility")
+endif()
+
 if (HAVE_PARALLEL_JOBS)
   target_compile_options(rccl PRIVATE -parallel-jobs=12)
 endif()

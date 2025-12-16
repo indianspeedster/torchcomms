@@ -2,7 +2,11 @@
 
 #pragma once
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#else
 #include <cuda_runtime.h> // @manual=third-party//cuda:cuda-lazy
+#endif
 
 #include "comms/utils/colltrace/CollMetadata.h"
 #include "comms/utils/colltrace/CommLogDataSerialize.h"

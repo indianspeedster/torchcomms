@@ -1,6 +1,9 @@
 #!/bin/bash
 set -x
 
+# Ensure linker never drops needed libs (fixes gflags/glog issue)
+export LDFLAGS="${LDFLAGS:-} -Wl,--allow-shlib-undefined -Wl,--no-as-needed"
+
 # Parse command line arguments
 AMDGPU_TARGETS=""
 while [[ $# -gt 0 ]]; do
@@ -39,6 +42,7 @@ function do_cmake_build() {
     -DBUILD_SHARED_LIBS=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     -DCMAKE_CXX_STANDARD=20 \
+    -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-as-needed" \
     "$extra_flags" \
     -S "${source_dir}"
   ninja
@@ -76,7 +80,6 @@ function build_fb_oss_library() {
     source_dir="../${library_name}/cmake_unofficial"
   fi
 
-  export LDFLAGS="-Wl,--allow-shlib-undefined"
   rm -rf build-output
   mkdir -p build-output
   pushd build-output
@@ -96,7 +99,6 @@ function build_automake_library() {
     git clone --depth 1 -b "$repo_tag" "$repo_url" "$library_name"
   fi
 
-  export LDFLAGS="-Wl,--allow-shlib-undefined"
   pushd "$library_name"
   ./configure --prefix="$CMAKE_PREFIX_PATH" --disable-pie
 
@@ -118,7 +120,6 @@ function build_boost() {
     git clone -j 10 --recurse-submodules --depth 1 -b "$repo_tag" "$repo_url" "$library_name"
   fi
 
-  export LDFLAGS="-Wl,--allow-shlib-undefined"
   pushd "$library_name"
   ./bootstrap.sh --prefix="$CMAKE_PREFIX_PATH" --libdir="$CMAKE_PREFIX_PATH/$LIB_SUFFIX" --without-libraries=python
   ./b2 -q cxxflags=-fPIC cflags=-fPIC install
@@ -183,7 +184,7 @@ function build_third_party {
 }
 
 if [ -z "$DEV_SIGNATURE" ]; then
-    is_git=$(git rev-parse --is-inside-work-tree)
+    is_git=$(git rev-parse --is-inside-work-tree || echo "")
     if [ "$is_git" ]; then
         DEV_SIGNATURE="git-"$(git rev-parse --short HEAD)
     else
@@ -231,3 +232,4 @@ pushd "${NCCL_HOME}"
     -j 16
 
 popd
+

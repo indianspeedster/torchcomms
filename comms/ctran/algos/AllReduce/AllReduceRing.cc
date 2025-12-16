@@ -2,6 +2,11 @@
 
 #include <chrono>
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#include <hip/hip_fp16.h>
+#include <hip/hip_bf16.h>
+#else
 #include <cuda.h>
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
@@ -10,6 +15,7 @@
 #endif
 #if CUDART_VERSION >= 11080
 #include <cuda_fp8.h>
+#endif
 #endif
 
 #include "comms/ctran/CtranComm.h"

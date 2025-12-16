@@ -2,7 +2,11 @@
 
 #pragma once
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#else
 #include <cuda_runtime.h>
+#endif
 
 #include <folly/synchronization/Baton.h>
 

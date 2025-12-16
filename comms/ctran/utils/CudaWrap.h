@@ -1,8 +1,12 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 #pragma once
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#else
 #include <cuda.h>
 #include <cuda_runtime.h>
+#endif
 #include <fmt/format.h>
 
 #include "comms/ctran/utils/ErrorStackTraceUtil.h"

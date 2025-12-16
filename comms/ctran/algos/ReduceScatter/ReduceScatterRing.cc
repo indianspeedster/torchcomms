@@ -1,6 +1,10 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_fp16.h>
+#else
 #include <cuda_fp16.h>
+#endif
 #include <deque>
 
 #include "comms/ctran/CtranComm.h"

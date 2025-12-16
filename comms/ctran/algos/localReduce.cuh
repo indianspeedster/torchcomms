@@ -3,19 +3,22 @@
 #pragma once
 
 #include <assert.h>
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#include <hip/hip_bf16.h>
+// TODO: Add this mapping to "cuda_to_hip_mappings.py" (See T233054942).
+#include <hip/hip_fp8.h>
+using local_reduce_bfloat16_t = __hip_bfloat16;
+#define __CUDA_BF16_TYPES_EXIST__ 1
+#else
 #include <cuda.h>
 #if CUDART_VERSION >= 11000
 #include <cuda_bf16.h>
+using local_reduce_bfloat16_t = __nv_bfloat16;
 #endif
 #if CUDART_VERSION >= 11080
 #include <cuda_fp8.h>
 #endif
-
-#if defined(__HIP_PLATFORM_AMD__)
-#include <cuda_bf16.h>
-
-// TODO: Add this mapping to "cuda_to_hip_mappings.py" (See T233054942).
-#include <hip/hip_fp8.h>
 #endif
 
 #include "comms/ctran/utils/DevUtils.cuh"
@@ -51,9 +54,9 @@ __device__ __forceinline__ __half operator/(const __half& a, const int& b) {
 #endif
 
 #if defined(__CUDA_BF16_TYPES_EXIST__)
-__device__ __forceinline__ __nv_bfloat16
-operator/(const __nv_bfloat16& a, const int& b) {
-  return __nv_bfloat16(__bfloat162float(a) / b);
+__device__ __forceinline__ local_reduce_bfloat16_t
+operator/(const local_reduce_bfloat16_t& a, const int& b) {
+  return local_reduce_bfloat16_t(__bfloat162float(a) / b);
 }
 #endif
 

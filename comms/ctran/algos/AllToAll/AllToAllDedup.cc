@@ -1,6 +1,15 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_fp16.h>
+#include <hip/hip_bf16.h>
+using alltoalldedup_bfloat16_t = __hip_bfloat16;
+#define __CUDA_BF16_TYPES_EXIST__ 1
+#else
 #include <cuda_fp16.h>
+#include <cuda_bf16.h>
+using alltoalldedup_bfloat16_t = __nv_bfloat16;
+#endif
 
 #include "comms/ctran/algos/AllToAll/AllToAllDedupImpl.h"
 #include "comms/ctran/algos/CtranAlgo.h"
@@ -23,7 +32,7 @@ void* alltoalldedupKerns[commNumTypes] = {
     (void*)ncclKernelAllToAllDedup<float>,
     (void*)ncclKernelAllToAllDedup<double>,
 #if defined(__CUDA_BF16_TYPES_EXIST__)
-    (void*)ncclKernelAllToAllDedup<__nv_bfloat16>,
+    (void*)ncclKernelAllToAllDedup<alltoalldedup_bfloat16_t>,
 #endif
 #if defined(__CUDA_FP8_TYPES_EXIST__) && defined(NCCL_ENABLE_FP8)
     (void*)ncclKernelAllToAllDedup<__nv_fp8_e4m3>,

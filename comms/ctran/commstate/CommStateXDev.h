@@ -2,7 +2,11 @@
 
 #pragma once
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#else
 #include <cuda.h>
+#endif
 #include <stdint.h>
 #include "comms/ctran/utils/DevAttribute.h"
 

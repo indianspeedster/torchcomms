@@ -5,7 +5,14 @@ file(GLOB TORCHCOMMS_NCCLX_SOURCES
 )
 file(GLOB TORCHCOMMS_CUDA_API_SOURCE "comms/torchcomms/device/CudaApi.cpp")
 
-find_package(CUDA)
+# Support both CUDA and ROCm/HIP
+if(DEFINED ENV{ROCM_PATH} OR EXISTS "/opt/rocm")
+    set(USE_ROCM ON)
+    find_package(hip REQUIRED)
+else()
+    set(USE_ROCM OFF)
+    find_package(CUDA)
+endif()
 
 # NCCLX handling
 if(USE_SYSTEM_LIBS)
@@ -131,7 +138,9 @@ else()
     )
 endif()
 
-if(CUDA_FOUND)
+if(USE_ROCM)
+    target_link_libraries(torchcomms_comms_ncclx PRIVATE hip::host)
+elseif(CUDA_FOUND)
     target_link_libraries(torchcomms_comms_ncclx PRIVATE CUDA::cudart)
 endif()
 

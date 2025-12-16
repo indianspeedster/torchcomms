@@ -7,11 +7,20 @@
 // __CUDA_BF16_TYPES_EXIST__ defined but it's defined in correcponding cuda
 // headers. So we need to include them here to make sure Ctran compiles
 // collectives for bf16 and fbp8 types.
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_bf16.h>
+using ctran_bfloat16_t = __hip_bfloat16;
+#define __CUDA_BF16_TYPES_EXIST__ 1
+#else
 #if CUDART_VERSION >= 11000
 #include <cuda_bf16.h>
 #endif
 #if CUDART_VERSION >= 11080
 #include <cuda_fp8.h>
+#endif
+#if defined(__CUDA_BF16_TYPES_EXIST__)
+using ctran_bfloat16_t = __nv_bfloat16;
+#endif
 #endif
 
 // Use "static const" definitions here.  constness helps disallow []
@@ -31,7 +40,7 @@
       {commFloat16, reinterpret_cast<const void*>(fn<half>)},             \
       {commFloat32, reinterpret_cast<const void*>(fn<float>)},            \
       {commFloat64, reinterpret_cast<const void*>(fn<double>)},           \
-      {commBfloat16, reinterpret_cast<const void*>(fn<__nv_bfloat16>)},   \
+      {commBfloat16, reinterpret_cast<const void*>(fn<ctran_bfloat16_t>)},   \
       {commFloat8e5m2, reinterpret_cast<const void*>(fn<__nv_fp8_e5m2>)}, \
       {commFloat8e4m3, reinterpret_cast<const void*>(fn<__nv_fp8_e4m3>)}, \
   };
@@ -47,7 +56,7 @@
       {commFloat16, reinterpret_cast<const void*>(fn<half>)},           \
       {commFloat32, reinterpret_cast<const void*>(fn<float>)},          \
       {commFloat64, reinterpret_cast<const void*>(fn<double>)},         \
-      {commBfloat16, reinterpret_cast<const void*>(fn<__nv_bfloat16>)}, \
+      {commBfloat16, reinterpret_cast<const void*>(fn<ctran_bfloat16_t>)}, \
   };
 #else
 #define CTRAN_DATATYPE_TO_FUNC_MAPPER(var, fn)                         \
@@ -104,7 +113,7 @@ struct CtranPairHash {
           CTRAN_REDOP_FUNCMAP(commFloat16, half, fn),             \
           CTRAN_REDOP_FUNCMAP(commFloat32, float, fn),            \
           CTRAN_REDOP_FUNCMAP(commFloat64, double, fn),           \
-          CTRAN_REDOP_FUNCMAP(commBfloat16, __nv_bfloat16, fn),   \
+          CTRAN_REDOP_FUNCMAP(commBfloat16, ctran_bfloat16_t, fn),   \
           CTRAN_REDOP_FUNCMAP(commFloat8e5m2, __nv_fp8_e5m2, fn), \
           CTRAN_REDOP_FUNCMAP(commFloat8e4m3, __nv_fp8_e4m3, fn), \
   };
@@ -124,7 +133,7 @@ struct CtranPairHash {
           CTRAN_REDOP_FUNCMAP(commFloat16, half, fn),           \
           CTRAN_REDOP_FUNCMAP(commFloat32, float, fn),          \
           CTRAN_REDOP_FUNCMAP(commFloat64, double, fn),         \
-          CTRAN_REDOP_FUNCMAP(commBfloat16, __nv_bfloat16, fn), \
+          CTRAN_REDOP_FUNCMAP(commBfloat16, ctran_bfloat16_t, fn), \
   };
 #else
 #define CTRAN_DATATYPE_REDOP_TO_FUNC_MAPPER(var, fn)     \

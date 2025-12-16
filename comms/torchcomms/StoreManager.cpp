@@ -53,7 +53,7 @@ c10::intrusive_ptr<c10d::Store> StoreManager::getStore(
   std::string prefix =
       fmt::format("torchcomm(backend={},name={})", backendName, commName);
 
-  if (storeNames_.contains(prefix)) {
+  if (storeNames_.find(prefix) != storeNames_.end()) {
     throw std::runtime_error("Store prefix has been reused for: " + prefix);
   }
   storeNames_.insert(prefix);

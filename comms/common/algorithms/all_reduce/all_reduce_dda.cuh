@@ -1,8 +1,14 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#include <hip/hip_bf16.h>
+#include <hip/hip_fp16.h>
+#else
 #include <cuda.h>
 #include <cuda_bf16.h>
 #include <cuda_fp16.h>
+#endif
 #include "comms/common/IpcGpuBarrier.cuh"
 #include "comms/common/algorithms/CollCommon.cuh"
 

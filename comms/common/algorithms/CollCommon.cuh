@@ -2,16 +2,26 @@
 
 #pragma once
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#include <hip/hip_bf16.h>
+#include <hip/hip_fp16.h>
+using bfloat16_type = __hip_bfloat16;
+using bfloat162_type = __hip_bfloat162;
+#else
 #include <cuda.h>
 #include <cuda_bf16.h>
 #include <cuda_fp16.h>
+using bfloat16_type = __nv_bfloat16;
+using bfloat162_type = __nv_bfloat162;
+#endif
 
 namespace meta::comms {
 
 template <typename T>
 concept SupportedTypes =
     (std::same_as<T, float> || std::same_as<T, half> ||
-     std::same_as<T, __nv_bfloat16>);
+     std::same_as<T, bfloat16_type>);
 
 template <SupportedTypes T>
 static inline __device__ uint32_t
@@ -28,12 +38,12 @@ vecElementAdd(const uint32_t& a, const uint32_t& b) {
     __half2 q = __halves2half2(y[0], y[1]);
     __half2 z = __hadd2(p, q);
     return (reinterpret_cast<uint32_t*>(&z))[0];
-  } else if constexpr (std::is_same<T, __nv_bfloat16>::value) {
-    const __nv_bfloat16* x = reinterpret_cast<const __nv_bfloat16*>(&a);
-    const __nv_bfloat16* y = reinterpret_cast<const __nv_bfloat16*>(&b);
-    __nv_bfloat162 p = {x[0], x[1]};
-    __nv_bfloat162 q = {y[0], y[1]};
-    __nv_bfloat162 z = __hadd2(p, q);
+  } else if constexpr (std::is_same<T, bfloat16_type>::value) {
+    const bfloat16_type* x = reinterpret_cast<const bfloat16_type*>(&a);
+    const bfloat16_type* y = reinterpret_cast<const bfloat16_type*>(&b);
+    bfloat162_type p(x[0], x[1]);
+    bfloat162_type q(y[0], y[1]);
+    bfloat162_type z = __hadd2(p, q);
     return (reinterpret_cast<uint32_t*>(&z))[0];
   }
   return 0;

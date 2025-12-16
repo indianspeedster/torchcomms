@@ -3,6 +3,15 @@
 #include <stdio.h>
 #include <cstddef>
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_bf16.h>
+using execimpl_cu_bfloat16_t = __hip_bfloat16;
+#define __CUDA_BF16_TYPES_EXIST__ 1
+#else
+#include <cuda_bf16.h>
+using execimpl_cu_bfloat16_t = __nv_bfloat16;
+#endif
+
 #include "comms/ctran/algos/AllToAllvDedup/CommonDev.h"
 #include "comms/ctran/algos/AllToAllvDedup/ExecCommon.cuh"
 #include "comms/ctran/algos/AllToAllvDedup/IndexMapDev.cuh"
@@ -802,7 +811,7 @@ DECL_ALLTOALLVDEDUP_KERN(half);
 DECL_ALLTOALLVDEDUP_KERN(float);
 DECL_ALLTOALLVDEDUP_KERN(double);
 #if defined(__CUDA_BF16_TYPES_EXIST__)
-DECL_ALLTOALLVDEDUP_KERN(__nv_bfloat16);
+DECL_ALLTOALLVDEDUP_KERN(execimpl_cu_bfloat16_t);
 #endif
 #if defined(__CUDA_FP8_TYPES_EXIST__) && defined(NCCL_ENABLE_FP8)
 DECL_ALLTOALLVDEDUP_KERN(__nv_fp8_e4m3);

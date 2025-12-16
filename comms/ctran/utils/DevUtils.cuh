@@ -2,7 +2,17 @@
 
 #pragma once
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#include <hip/hip_bf16.h>
+using dev_utils_bfloat16_t = __hip_bfloat16;
+#define __CUDA_BF16_TYPES_EXIST__ 1
+#else
 #include <cuda.h>
+#if defined(__CUDA_BF16_TYPES_EXIST__)
+using dev_utils_bfloat16_t = __nv_bfloat16;
+#endif
+#endif
 
 namespace ctran::utils {
 
@@ -166,11 +176,11 @@ __device__ __forceinline__ OUTPUT castTo(INPUT input) {
 
 #ifdef __CUDA_BF16_TYPES_EXIST__
 template <>
-__device__ __forceinline__ __nv_bfloat16 castTo<float, __nv_bfloat16>(float x) {
+__device__ __forceinline__ dev_utils_bfloat16_t castTo<float, dev_utils_bfloat16_t>(float x) {
   return __float2bfloat16(x);
 }
 template <>
-__device__ __forceinline__ float castTo<__nv_bfloat16, float>(__nv_bfloat16 x) {
+__device__ __forceinline__ float castTo<dev_utils_bfloat16_t, float>(dev_utils_bfloat16_t x) {
   return __bfloat162float(x);
 }
 #endif

@@ -2,8 +2,13 @@
 
 #pragma once
 
+#if defined(__HIP_PLATFORM_AMD__) || defined(USE_ROCM)
+#include <hip/hip_runtime.h>
+#include <hip/hip_bf16.h>
+#else
 #include <cuda.h>
 #include <cuda_bf16.h>
+#endif
 #include "comms/ctran/algos/DevCommon.cuh"
 #include "comms/ctran/utils/DevUtils.cuh"
 
